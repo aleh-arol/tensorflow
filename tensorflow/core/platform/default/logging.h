@@ -20,6 +20,7 @@ limitations under the License.
 // IWYU pragma: friend third_party/tensorflow/core/platform/logging.h
 
 #include <limits>
+#include <iostream>
 #include <sstream>
 #include "tensorflow/core/platform/macros.h"
 #include "tensorflow/core/platform/types.h"
