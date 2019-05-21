@@ -262,21 +262,22 @@ ifeq ($(TARGET),ANDROID)
 	endif
 
 	ifeq ($(ANDROID_ARCH),arm64-v8a)
-		TOOLCHAIN := aarch64-linux-android-4.9
+		TOOLCHAIN := llvm
 		SYSROOT_ARCH := arm64
 		BIN_PREFIX := aarch64-linux-android
 		MARCH_OPTION :=
 	endif
 	ifeq ($(ANDROID_ARCH),armeabi)
-		TOOLCHAIN := arm-linux-androideabi-4.9
+		TOOLCHAIN := llvm
 		SYSROOT_ARCH := arm
 		BIN_PREFIX := arm-linux-androideabi
 		MARCH_OPTION :=
 	endif
 	ifeq ($(ANDROID_ARCH),armeabi-v7a)
-		TOOLCHAIN := arm-linux-androideabi-4.9
+		TOOLCHAIN := llvm
 		SYSROOT_ARCH := arm
-		BIN_PREFIX := arm-linux-androideabi
+		BIN_PREFIX := armv7a-linux-androideabi
+		TOOL_PREFIX := arm-linux-androideabi
 		MARCH_OPTION := -march=armv7-a -mfloat-abi=softfp -mfpu=neon
 	endif
 	ifeq ($(ANDROID_ARCH),mips)
@@ -298,28 +299,27 @@ ifeq ($(TARGET),ANDROID)
 		MARCH_OPTION :=
 	endif
 	ifeq ($(ANDROID_ARCH),x86_64)
-		TOOLCHAIN := x86_64-4.9
+		TOOLCHAIN := llvm
 		SYSROOT_ARCH := x86_64
 		BIN_PREFIX := x86_64-linux-android
 		MARCH_OPTION :=
 	endif
+	TOOL_PREFIX ?= $(BIN_PREFIX)
     
 	ifndef NDK_ROOT
     $(error "NDK_ROOT is not defined.")
 	endif
-	CXX := $(CC_PREFIX) $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(BIN_PREFIX)-g++
-	CC := $(CC_PREFIX) $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(BIN_PREFIX)-gcc
+	CXX := $(CC_PREFIX) $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(BIN_PREFIX)21-clang++
+	CC := $(CC_PREFIX) $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(BIN_PREFIX)21-clang
 	CXXFLAGS +=\
---sysroot $(NDK_ROOT)/platforms/android-21/arch-$(SYSROOT_ARCH) \
+--sysroot $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/sysroot \
+-D__ANDROID_API__=21 \
 -Wno-narrowing \
 -fomit-frame-pointer \
 $(MARCH_OPTION) \
 -fPIE \
 -fPIC
 	INCLUDES = \
--I$(NDK_ROOT)/sources/android/support/include \
--I$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/include \
--I$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/$(ANDROID_ARCH)/include \
 -I. \
 -I$(MAKEFILE_DIR)/downloads/ \
 -I$(MAKEFILE_DIR)/downloads/eigen \
@@ -332,7 +332,7 @@ $(MARCH_OPTION) \
 
 	LIBS := \
 $(TARGET_NSYNC_LIB) \
--lgnustl_static \
+-lc++ \
 -lprotobuf \
 -llog \
 -lz \
@@ -345,12 +345,12 @@ $(TARGET_NSYNC_LIB) \
 	LDFLAGS := \
 $(MARCH_OPTION) \
 -L$(MAKEFILE_DIR)/gen/protobuf_android/$(ANDROID_ARCH)/lib \
--L$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/$(ANDROID_ARCH) \
+-L$(NDK_ROOT)/sources/cxx-stl/llvm-libc++/libs/$(ANDROID_ARCH) \
 -fPIE \
 -pie \
 -v
 
-	AR := $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(BIN_PREFIX)-ar
+	AR := $(NDK_ROOT)/toolchains/$(TOOLCHAIN)/prebuilt/$(ANDROID_HOST_OS_ARCH)/bin/$(TOOL_PREFIX)-ar
 	ARFLAGS := r
 	LIBFLAGS += -Wl,--allow-multiple-definition -Wl,--whole-archive
 

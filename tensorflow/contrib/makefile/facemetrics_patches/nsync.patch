@@ -1,0 +1,48 @@
+diff -Naur ./tensorflow/contrib/makefile/downloads/nsync/internal/counter.c /home/bat/Downloads/nsync_patched/internal/counter.c
+--- ./tensorflow/contrib/makefile/downloads/nsync/internal/counter.c	2018-03-20 02:22:48.000000000 +0300
++++ /home/bat/Downloads/nsync_patched/internal/counter.c	2019-05-21 23:42:29.747319000 +0300
+@@ -36,7 +36,7 @@
+ nsync_counter nsync_counter_new (uint32_t value) {
+ 	nsync_counter c = (nsync_counter) malloc (sizeof (*c));
+ 	if (c != NULL) {
+-		memset (c, 0, sizeof (*c));
++		memset (static_cast<void*>(c), 0, sizeof (*c));
+ 		ATM_STORE (&c->value, value);
+ 	}
+ 	return (c);
+diff -Naur ./tensorflow/contrib/makefile/downloads/nsync/internal/cv.c /home/bat/Downloads/nsync_patched/internal/cv.c
+--- ./tensorflow/contrib/makefile/downloads/nsync/internal/cv.c	2018-03-20 02:22:48.000000000 +0300
++++ /home/bat/Downloads/nsync_patched/internal/cv.c	2019-05-21 23:43:12.647588000 +0300
+@@ -27,7 +27,7 @@
+ 
+ /* Initialize *cv. */
+ void nsync_cv_init (nsync_cv *cv) {
+-        memset (cv, 0, sizeof (*cv));
++        memset (static_cast<void*>(cv), 0, sizeof (*cv));
+ }
+ 
+ /* Wake the cv waiters in the circular list pointed to by
+diff -Naur ./tensorflow/contrib/makefile/downloads/nsync/internal/mu.c /home/bat/Downloads/nsync_patched/internal/mu.c
+--- ./tensorflow/contrib/makefile/downloads/nsync/internal/mu.c	2018-03-20 02:22:48.000000000 +0300
++++ /home/bat/Downloads/nsync_patched/internal/mu.c	2019-05-21 23:43:43.695780000 +0300
+@@ -27,7 +27,7 @@
+ 
+ /* Initialize *mu. */
+ void nsync_mu_init (nsync_mu *mu) {
+-	memset (mu, 0, sizeof (*mu));
++	memset (static_cast<void*>(mu), 0, sizeof (*mu));
+ }
+ 
+ /* Release the mutex spinlock. */
+diff -Naur ./tensorflow/contrib/makefile/downloads/nsync/internal/note.c /home/bat/Downloads/nsync_patched/internal/note.c
+--- ./tensorflow/contrib/makefile/downloads/nsync/internal/note.c	2018-03-20 02:22:48.000000000 +0300
++++ /home/bat/Downloads/nsync_patched/internal/note.c	2019-05-21 23:44:24.576031000 +0300
+@@ -171,7 +171,7 @@
+ 			   nsync_time abs_deadline) {
+ 	nsync_note n = (nsync_note) malloc (sizeof (*n));
+ 	if (n != NULL) {
+-		memset (n, 0, sizeof (*n));
++		memset (static_cast<void*>(n), 0, sizeof (*n));
+ 		nsync_dll_init_ (&n->parent_child_link, n);
+ 		set_expiry_time (n, abs_deadline);
+ 		if (!nsync_note_is_notified (n) && parent != NULL) {

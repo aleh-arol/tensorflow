@@ -1,0 +1,12 @@
+diff -Naur ./tensorflow/contrib/makefile/downloads/protobuf/configure.ac /home/bat/Downloads/protobuf_patched/configure.ac
+--- ./tensorflow/contrib/makefile/downloads/protobuf/configure.ac	2017-12-15 02:53:23.000000000 +0300
++++ /home/bat/Downloads/protobuf_patched/configure.ac	2019-05-21 23:21:26.396341000 +0300
+@@ -191,7 +191,7 @@
+ AC_CXX_STL_HASH
+ 
+ case "$target_os" in
+-  mingw* | cygwin* | win*)
++  mingw* | cygwin* | win* | *android* )
+     ;;
+   *)
+     # Need to link against rt on Solaris

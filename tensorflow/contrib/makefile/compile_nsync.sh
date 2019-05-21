@@ -202,24 +202,24 @@ for arch in $archs; do
                 esac
 
                 case "$arch" in
-                arm64-v8a)              toolchain="aarch64-linux-android-4.9"
+                arm64-v8a)              toolchain="llvm"
                                         sysroot_arch="arm64"
                                         bin_prefix="aarch64-linux-android"
                                         march_option=
                                         ;;
-                armeabi)                toolchain="arm-linux-androideabi-4.9"
+                armeabi)                toolchain="llvm"
                                         sysroot_arch="arm"
                                         bin_prefix="arm-linux-androideabi"
                                         march_option=
                                         ;;
-                armeabi-v7a)            toolchain="arm-linux-androideabi-4.9"
+                armeabi-v7a)            toolchain="llvm"
                                         sysroot_arch="arm"
-                                        bin_prefix="arm-linux-androideabi"
+                                        bin_prefix="armv7a-linux-androideabi"
                                         march_option="-march=armv7-a -mfloat-abi=softfp -mfpu=neon"
                                         ;;
-                armeabi-v7a-hard)       toolchain="arm-linux-androideabi-4.9"
+                armeabi-v7a-hard)       toolchain="llvm"
                                         sysroot_arch="arm"
-                                        bin_prefix="arm-linux-androideabi"
+                                        bin_prefix="armv7a-linux-androideabi"
                                         march_option="-march=armv7-a -mfpu=neon"
                                         ;;
                 mips)                   toolchain="mipsel-linux-android-4.9"
@@ -237,7 +237,7 @@ for arch in $archs; do
                                         bin_prefix="i686-linux-android"
                                         march_option=
                                         ;;
-                x86_64)                 toolchain="x86_64-4.9"
+                x86_64)                 toolchain="llvm"
                                         sysroot_arch="x86_64"
                                         bin_prefix="x86_64-linux-android"
                                         march_option=
@@ -255,15 +255,13 @@ for arch in $archs; do
                         exit 2;;
                 esac
 
+                sysroot="${NDK_ROOT}/toolchains/${toolchain}/prebuilt/${android_os_arch}/sysroot"
                 makefile='
                         CC=${CC_PREFIX} \
-                           ${NDK_ROOT}/toolchains/'"$toolchain"'/prebuilt/'"$android_os_arch"'/bin/'"$bin_prefix"'-g++
+                           ${NDK_ROOT}/toolchains/'"$toolchain"'/prebuilt/'"$android_os_arch"'/bin/'"$bin_prefix"''"$android_api_version"'-clang++
                         PLATFORM_CPPFLAGS=--sysroot \
-                                          $(NDK_ROOT)/platforms/android-'"$android_api_version"'/arch-'"$sysroot_arch"' \
+                                          '"$sysroot"' \
                                           -DNSYNC_USE_CPP11_TIMEPOINT -DNSYNC_ATOMIC_CPP11 \
-                                          -I$(NDK_ROOT)/sources/android/support/include \
-                                          -I$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/include \
-                                          -I$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/'"$arch"'/include \
                                           -I../../platform/c++11 -I../../platform/gcc \
                                           -I../../platform/posix -pthread
                         PLATFORM_CFLAGS=-std=c++11 -Wno-narrowing '"$march_option"' -fPIE -fPIC

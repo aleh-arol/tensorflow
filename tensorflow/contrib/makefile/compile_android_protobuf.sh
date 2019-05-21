@@ -96,55 +96,71 @@ fi
 
 echo $OSTYPE | grep -q "darwin" && os_type="darwin" || os_type="linux"
 if [[ ${ARCHITECTURE} == "arm64-v8a" ]]; then
-    toolchain="aarch64-linux-android-4.9"
+    toolchain="llvm"
     sysroot_arch="arm64"
     bin_prefix="aarch64-linux-android"
+    aux_libs=""
 elif [[ ${ARCHITECTURE} == "armeabi" ]]; then
     toolchain="arm-linux-androideabi-4.9"
     sysroot_arch="arm"
     bin_prefix="arm-linux-androideabi"
+    aux_libs="-lunwind -landroid_support"
 elif [[ ${ARCHITECTURE} == "armeabi-v7a" ]]; then
-    toolchain="arm-linux-androideabi-4.9"
+    toolchain="llvm"
     sysroot_arch="arm"
-    bin_prefix="arm-linux-androideabi"
+    bin_prefix="armv7a-linux-androideabi"
     march_option="-march=armv7-a"
+    aux_libs="-lunwind -landroid_support"
 elif [[ ${ARCHITECTURE} == "armeabi-v7a-hard" ]]; then
-    toolchain="arm-linux-androideabi-4.9"
+    toolchain="llvm"
     sysroot_arch="arm"
-    bin_prefix="arm-linux-androideabi"
+    bin_prefix="armv7a-linux-androideabi"
     march_option="-march=armv7-a"
+    aux_libs="-lunwind -landroid_support"
 elif [[ ${ARCHITECTURE} == "mips" ]]; then
     toolchain="mipsel-linux-android-4.9"
     sysroot_arch="mips"
     bin_prefix="mipsel-linux-android"
+    aux_libs=""
 elif [[ ${ARCHITECTURE} == "mips64" ]]; then
     toolchain="mips64el-linux-android-4.9"
     sysroot_arch="mips64"
     bin_prefix="mips64el-linux-android"
+    aux_libs=""
 elif [[ ${ARCHITECTURE} == "x86" ]]; then
-    toolchain="x86-4.9"
+    toolchain="llvm"
     sysroot_arch="x86"
     bin_prefix="i686-linux-android"
+    aux_libs="-landroid_support"
 elif [[ ${ARCHITECTURE} == "x86_64" ]]; then
-    toolchain="x86_64-4.9"
+    toolchain="llvm"
     sysroot_arch="x86_64"
     bin_prefix="x86_64-linux-android"
+    aux_libs=""
 else
     echo "architecture ${ARCHITECTURE} is not supported." 1>&2
     usage
     exit 1
 fi
 
-echo "Android api version = ${android_api_version} cc_prefix = ${cc_prefix}"
+echo "Android api version = ${android_api_version} cc_prefix = ${cc_prefix} bin_prefix = ${bin_prefix}"
 
 export PATH=\
 "${NDK_ROOT}/toolchains/${toolchain}/prebuilt/${os_type}-x86_64/bin:$PATH"
 export SYSROOT=\
-"${NDK_ROOT}/platforms/android-${android_api_version}/arch-${sysroot_arch}"
-export CC="${cc_prefix} ${bin_prefix}-gcc --sysroot ${SYSROOT}"
-export CXX="${cc_prefix} ${bin_prefix}-g++ --sysroot ${SYSROOT}"
+"${NDK_ROOT}/toolchains/${toolchain}/prebuilt/${os_type}-x86_64/sysroot"
+#"${NDK_ROOT}/platforms/android-${android_api_version}/arch-${sysroot_arch}"
+
+export SYSROOT_INC=\
+"${NDK_ROOT}/toolchains/${toolchain}/prebuilt/${os_type}-x86_64/sysroot"
+#"${NDK_ROOT}/sysroot"
+
+#export CC="${cc_prefix} ${bin_prefix}${android_api_version}-clang --sysroot ${SYSROOT} -idirafter${SYSROOT_INC}/usr/include -idirafter${SYSROOT_INC}/usr/include/${bin_prefix}"
+#export CXX="${cc_prefix} ${bin_prefix}${android_api_version}-clang++ --sysroot ${SYSROOT} -idirafter${SYSROOT_INC}/usr/include -idirafter${SYSROOT_INC}/usr/include/${bin_prefix}"
+export CC="${cc_prefix} ${bin_prefix}${android_api_version}-clang --sysroot ${SYSROOT}"
+export CXX="${cc_prefix} ${bin_prefix}${android_api_version}-clang++ --sysroot ${SYSROOT}"
 export CXXSTL=\
-"${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/${ARCHITECTURE}"
+"${NDK_ROOT}/sources/cxx-stl/llvm-libc++"
 
 ./autogen.sh
 if [ $? -ne 0 ]
@@ -159,13 +175,16 @@ fi
 --disable-shared \
 --enable-cross-compile \
 --with-protoc="${PROTOC_PATH}" \
-CFLAGS="${march_option}" \
-CXXFLAGS="-frtti -fexceptions ${march_option} \
+CFLAGS="-fPIC ${march_option}" \
+CXXFLAGS="-frtti -fexceptions -fPIC ${march_option} \
+#-isysroot ${SYSROOT_INC} \
+-I${CXXSTL}/include \
+-I${CXXSTL}/system/include \
 -I${NDK_ROOT}/sources/android/support/include \
--I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/include \
--I${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/${ARCHITECTURE}/include" \
-LDFLAGS="-L${NDK_ROOT}/sources/cxx-stl/gnu-libstdc++/4.9/libs/${ARCHITECTURE}" \
-LIBS="-llog -lz -lgnustl_static"
+#-I${SYSROOT_INC}/usr/include/${bin_prefix} \
+-D__ANDROID_API__=${android_api_version}" \
+LDFLAGS="-L${CXXSTL}/libs/${ARCHITECTURE}" \
+LIBS="-llog -lz -lc++_static -lc++abi ${aux_libs}"
 
 if [ $? -ne 0 ]
 then
