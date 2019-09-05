@@ -122,6 +122,7 @@ $(wildcard tensorflow/lite/kernels/internal/reference/*.cc) \
 $(PROFILER_SRCS) \
 tensorflow/lite/tools/make/downloads/farmhash/src/farmhash.cc \
 tensorflow/lite/tools/make/downloads/fft2d/fftsg.c \
+tensorflow/lite/tools/make/downloads/fft2d/fft4f2d.c \
 tensorflow/lite/tools/make/downloads/flatbuffers/src/util.cpp
 endif
 # Remove any duplicates.
@@ -229,6 +230,12 @@ MINIMAL_BINARY := $(BINDIR)minimal
 CXX := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}g++
 CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}gcc
 AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}ar
+
+ifeq ($(TARGET),aarch64)
+	CXX := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}21-clang++
+	CC := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}21-clang
+	AR := $(CC_PREFIX)${TARGET_TOOLCHAIN_PREFIX}-ar
+endif
 
 MINIMAL_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MINIMAL_SRCS))))

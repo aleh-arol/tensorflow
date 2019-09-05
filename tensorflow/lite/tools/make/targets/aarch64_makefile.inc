@@ -3,7 +3,7 @@ ifeq ($(TARGET),aarch64)
   # The aarch64 architecture covers all 64-bit ARM chips. This arch mandates
   # NEON, so FPU flags are not needed below.
   TARGET_ARCH := armv8-a
-  TARGET_TOOLCHAIN_PREFIX := aarch64-linux-gnu-
+  TARGET_TOOLCHAIN_PREFIX := /tmp/arm64/bin/aarch64-linux-android
 
   CXXFLAGS += \
     -march=armv8-a \
@@ -21,13 +21,11 @@ ifeq ($(TARGET),aarch64)
     -Wl,--no-export-dynamic \
     -Wl,--exclude-libs,ALL \
     -Wl,--gc-sections \
-    -Wl,--as-needed \
-    -lrt
+    -Wl,--as-needed
 
        
   LIBS := \
     -lstdc++ \
-    -lpthread \
     -lm \
     -ldl
 
